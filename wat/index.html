@@ -1,0 +1,42 @@
+<head>
+  <title>WAT</title>
+  <link rel="shortcut icon" href="favicon.png" />
+</head>
+<body>
+  <article>
+    <input type="number" onchange="calculate()" id="a" name="a" />
+    +
+    <input type="number" onchange="calculate()" id="b" name="b" />
+    =
+    <input type="number" id="c" name="c" readonly />
+  </article>
+
+  <script>
+    let logCallback = x => console.log(x);
+    let imports = {
+      js: {
+        log: logCallback
+      }
+    };
+
+    function loadWasm(path, imports) {
+      return fetch(path)
+        .then(response => response.arrayBuffer())
+        .then(bytes => WebAssembly.instantiate(bytes, imports))
+        .then(results => {
+          return results.instance.exports;
+        });
+    }
+
+    loadWasm("add.wasm", imports).then(mod => {
+      window.add = mod.add;
+    });
+
+    function calculate(event) {
+      if (event) event.preventDefault();
+      const a = document.getElementById("a").value || 0;
+      const b = document.getElementById("b").value || 0;
+      document.getElementById("c").value = window.add(a, b);
+    }
+  </script>
+</body>
